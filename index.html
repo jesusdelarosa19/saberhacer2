@@ -54,6 +54,15 @@
   🚗 Venta de Carros PRO
 </header>
 
+<div id="toastContainer" class="fixed top-4 right-4 z-[10000] space-y-2 w-[92%] max-w-sm"></div>
+
+<div id="downloadAlert" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-3 rounded-xl shadow-2xl z-[10000] w-[92%] max-w-xl">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <p class="text-sm sm:text-base">La app esta lista para descargarse en tu dispositivo.</p>
+    <button id="installBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">Descargar</button>
+  </div>
+</div>
+
 <div class="p-6 max-w-6xl mx-auto">
 
   <!-- LOGIN -->
@@ -89,11 +98,14 @@
       </div>
     </div>
 
-    <!-- FORMULARIO -->
-    <div class="bg-white p-6 rounded-2xl shadow-xl mb-8 flex flex-col md:flex-row gap-4">
-      <input id="nombre" placeholder="Nombre del auto" class="border p-3 rounded-lg w-full">
-      <input id="precio" placeholder="Precio" class="border p-3 rounded-lg w-full">
-      <button onclick="agregarAuto()" class="bg-green-600 text-white px-6 py-3 rounded-lg">Agregar</button>
+    <!-- BARRA DE HERRAMIENTAS -->
+    <div class="bg-white p-6 rounded-2xl shadow-xl mb-8">
+      <div class="flex flex-col md:flex-row gap-4 items-stretch md:items-end">
+        <input id="nombre" placeholder="Nombre del auto" class="border p-3 rounded-lg flex-1">
+        <input id="precio" placeholder="Precio" class="border p-3 rounded-lg flex-1">
+        <button onclick="agregarAuto()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">Agregar</button>
+        <button onclick="logout()" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700">Salir</button>
+      </div>
     </div>
 
     <!-- INVENTARIO -->
@@ -109,6 +121,30 @@ let autos = JSON.parse(localStorage.getItem('autos')) || [
   { nombre: "Toyota Corolla", precio: 250000 },
   { nombre: "Nissan Sentra", precio: 280000 }
 ];
+
+let deferredPrompt = null;
+
+function mostrarAlerta(mensaje, tipo = 'info', duracion = 2600) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const colores = {
+    success: 'bg-green-600 text-white',
+    error: 'bg-red-600 text-white',
+    warning: 'bg-amber-500 text-black',
+    info: 'bg-blue-600 text-white'
+  };
+
+  const toast = document.createElement('div');
+  toast.className = `${colores[tipo] || colores.info} px-4 py-3 rounded-xl shadow-xl text-sm transition-opacity duration-300`;
+  toast.textContent = mensaje;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('opacity-0');
+    setTimeout(() => toast.remove(), 300);
+  }, duracion);
+}
 
 function ocultarSplash(){
   const splash = document.getElementById('splash');
@@ -134,11 +170,34 @@ function login(){
   const pass = document.getElementById('pass').value;
 
   if(user === 'admin' && pass === '1234'){
+    localStorage.setItem('authUser', user);
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('app').classList.remove('hidden');
+    document.getElementById('user').value = '';
+    document.getElementById('pass').value = '';
+    renderAutos();
+    mostrarAlerta('Sesion iniciada correctamente', 'success');
+  } else {
+    mostrarAlerta('Datos incorrectos', 'error');
+  }
+}
+
+function logout(){
+  localStorage.removeItem('authUser');
+  document.getElementById('loginBox').style.display = 'block';
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('user').value = '';
+  document.getElementById('pass').value = '';
+  document.getElementById('user').focus();
+  mostrarAlerta('Sesion cerrada correctamente', 'info');
+}
+
+function verificarAutenticacion(){
+  const userId = localStorage.getItem('authUser');
+  if(userId){
     document.getElementById('loginBox').style.display = 'none';
     document.getElementById('app').classList.remove('hidden');
     renderAutos();
-  } else {
-    alert('Datos incorrectos');
   }
 }
 
@@ -180,32 +239,81 @@ function agregarAuto(){
     nombreInput.value = '';
     precioInput.value = '';
     nombreInput.focus();
+    mostrarAlerta('Auto agregado al inventario', 'success');
   } else {
-    alert('Ingresa un nombre y un precio valido mayor a 0');
+    mostrarAlerta('Ingresa un nombre y un precio valido mayor a 0', 'warning');
   }
 }
 
 function eliminarAuto(index){
+  const nombre = autos[index]?.nombre;
   autos.splice(index, 1);
   guardarAutos();
   refrescarAutos();
+  mostrarAlerta(`Auto eliminado: ${nombre || 'sin nombre'}`, 'warning');
 }
 
 function comprar(nombre){
-  alert('🚗 Compra realizada: ' + nombre);
+  mostrarAlerta('Compra realizada: ' + nombre, 'success');
+}
+
+async function instalarApp(){
+  if (!deferredPrompt) {
+    mostrarAlerta('La instalacion aun no esta disponible', 'info');
+    return;
+  }
+
+  deferredPrompt.prompt();
+  const choice = await deferredPrompt.userChoice;
+
+  if (choice.outcome === 'accepted') {
+    mostrarAlerta('Descarga iniciada correctamente', 'success');
+  } else {
+    mostrarAlerta('Descarga cancelada por el usuario', 'warning');
+  }
+
+  deferredPrompt = null;
+  document.getElementById('downloadAlert').classList.add('hidden');
 }
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+  navigator.serviceWorker.register('sw.js').then(registration => {
+    registration.addEventListener('updatefound', () => {
+      const newWorker = registration.installing;
+      if (!newWorker) return;
+
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          mostrarAlerta('Nueva version descargada. Recarga para actualizar.', 'info', 4200);
+        }
+      });
+    });
+  });
 }
+
+window.addEventListener('beforeinstallprompt', event => {
+  event.preventDefault();
+  deferredPrompt = event;
+  document.getElementById('downloadAlert').classList.remove('hidden');
+  mostrarAlerta('Descarga disponible: puedes instalar la app', 'info', 3400);
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('downloadAlert').classList.add('hidden');
+  mostrarAlerta('Instalacion completada con exito', 'success');
+});
+
+document.getElementById('installBtn').addEventListener('click', instalarApp);
 
 window.addEventListener('storage', event => {
   if (event.key === 'autos') {
     refrescarAutos();
+    mostrarAlerta('Inventario actualizado desde otra pestana', 'info');
   }
 });
 
 window.addEventListener('load', () => {
+  verificarAutenticacion();
   setTimeout(ocultarSplash, 1200);
 });
 </script>
