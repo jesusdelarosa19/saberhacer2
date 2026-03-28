@@ -7,5 +7,67 @@
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#000000",
-  "theme_color": "#000000"
-} 
+  "theme_color": "#1f2937",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23000' width='192' height='192'/><text x='50%' y='50%' font-size='100' dominant-baseline='middle' text-anchor='middle' fill='white'>🚗</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 384'><rect fill='%23000' width='384' height='384'/><text x='50%' y='50%' font-size='200' dominant-baseline='middle' text-anchor='middle' fill='white'>🚗</text></svg>",
+      "sizes": "384x384",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%23000' width='512' height='512'/><text x='50%' y='50%' font-size='280' dominant-baseline='middle' text-anchor='middle' fill='white'>🚗</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%231f2937' width='192' height='192'/><text x='50%' y='50%' font-size='100' dominant-baseline='middle' text-anchor='middle' fill='white'>🚗</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 384'><rect fill='%231f2937' width='384' height='384'/><text x='50%' y='50%' font-size='200' dominant-baseline='middle' text-anchor='middle' fill='white'>🚗</text></svg>",
+      "sizes": "384x384",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%23000' width='540' height='720'/><text x='50%' y='100' font-size='40' font-weight='bold' fill='white' text-anchor='middle'>Venta de Carros PRO</text><text x='50%' y='360' font-size='60' fill='white' text-anchor='middle'>🚗</text></svg>",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'><rect fill='%23000' width='1280' height='720'/><text x='50%' y='80' font-size='50' font-weight='bold' fill='white' text-anchor='middle'>Venta de Carros PRO</text><text x='50%' y='360' font-size='120' fill='white' text-anchor='middle'>🚗</text></svg>",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ver Inventario",
+      "short_name": "Inventory",
+      "description": "Accede directamente al inventario de carros",
+      "url": "/index.html",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23000' width='192' height='192'/><text x='50%' y='50%' font-size='100' dominant-baseline='middle' text-anchor='middle' fill='white'>🚗</text></svg>",
+          "sizes": "192x192",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "categories": ["business", "shopping"]
+}
