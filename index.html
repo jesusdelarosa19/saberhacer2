@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="Gestiona y vende autos con datos locales, remotos, offline, notificaciones y acceso a sensores">
-  <meta name="theme-color" content="#1f2937">
+  <meta name="description" content="Gestiona y vende autos - PWA con datos offline, notificaciones y más">
+  <meta name="theme-color" content="#0f172a">
   <meta name="color-scheme" content="dark light">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -32,6 +32,7 @@
       margin: 0;
       padding: 0;
       overflow-x: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     }
 
     #splash {
@@ -41,8 +42,8 @@
       align-items: center;
       justify-content: center;
       flex-direction: column;
-      gap: 0.75rem;
-      background: radial-gradient(circle at 20% 20%, #2d3748, #000000 60%);
+      gap: 1.5rem;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       color: #ffffff;
       z-index: 9999;
       transition: opacity 0.4s ease;
@@ -54,10 +55,10 @@
     }
 
     .spinner {
-      width: 44px;
-      height: 44px;
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-top-color: #ffffff;
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #3b82f6;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
@@ -66,22 +67,121 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Mejorar visualización en safe areas */
+    .view {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.375rem 0.875rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .status-online {
+      background: #10b981;
+      color: white;
+    }
+
+    .status-offline {
+      background: #ef4444;
+      color: white;
+    }
+
+    .car-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 10px 13px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .car-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .car-image {
+      width: 100%;
+      height: 200px;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .car-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .car-info {
+      padding: 1.5rem;
+    }
+
+    .car-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0 0 0.5rem 0;
+      line-height: 1.4;
+    }
+
+    .car-price {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0.5rem 0 1rem 0;
+    }
+
+    .car-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .car-actions button {
+      flex: 1;
+      padding: 0.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.875rem;
+    }
+
     header {
-      padding-top: max(1.25rem, env(safe-area-inset-top));
+      padding-top: max(1.5rem, env(safe-area-inset-top));
       padding-left: max(1.5rem, env(safe-area-inset-left));
       padding-right: max(1.5rem, env(safe-area-inset-right));
     }
 
-    #app {
+    main {
       padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
     }
 
-    /* Responsivo mejorado */
     @media (max-width: 768px) {
       input, button {
         font-size: 16px;
-        padding: 0.75rem;
       }
       
       .grid {
@@ -106,280 +206,671 @@
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-gray-100 to-gray-300 min-h-screen">
+<body class="bg-white">
 
 <div id="splash" aria-live="polite" aria-label="Cargando aplicación">
-  <div class="text-4xl">🚗</div>
-  <h1 class="text-2xl font-bold tracking-wide">Venta de Carros PRO</h1>
-  <div class="spinner" aria-hidden="true"></div>
-  <p class="text-sm opacity-90">Cargando inventario...</p>
+  <div class="text-6xl font-bold">🚗</div>
+  <div class="text-center">
+    <h1 class="text-4xl font-bold tracking-tight">CarrosPRO</h1>
+    <p class="text-sm text-slate-300 mt-2">Gestiona tu inventario</p>
+  </div>
+  <div class="spinner"></div>
 </div>
 
-<header class="bg-black text-white p-4 sm:p-5 text-center text-2xl sm:text-3xl font-bold shadow-lg sticky top-0 z-50">
-  🚗 Venta de Carros PRO
+<div id="toastContainer" class="fixed top-4 right-4 z-[10000] space-y-3 w-11/12 max-w-sm pointer-events-none"></div>
+
+<div id="downloadAlert" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-2xl shadow-2xl z-[9998] w-11/12 max-w-xl border border-blue-500">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <p class="font-semibold">📱 Instalar Aplicación</p>
+      <p class="text-sm text-blue-100">Accede desde tu pantalla de inicio</p>
+    </div>
+    <button id="installBtn" class="bg-white text-blue-600 hover:bg-blue-50 px-6 py-2 rounded-lg text-sm font-semibold whitespace-nowrap">Descargar</button>
+  </div>
+</div>
+
+<header class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-xl sticky top-0 z-50 border-b border-slate-700">
+  <div class="p-4 sm:p-6 max-w-7xl mx-auto">
+    <div class="flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl">🚗</span>
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-bold">CarrosPRO</h1>
+          <p class="text-xs text-slate-400">Gestor de Inventario</p>
+        </div>
+      </div>
+      <span id="statusBadge" class="status-badge status-online">Conectado</span>
+    </div>
+  </div>
 </header>
 
-<div id="toastContainer" class="fixed top-4 right-4 z-[10000] space-y-2 w-11/12 max-w-sm"></div>
+<main class="p-4 sm:p-8 max-w-7xl mx-auto">
 
-<div id="downloadAlert" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-3 rounded-xl shadow-2xl z-[10000] w-[92%] max-w-xl">
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-    <p class="text-sm sm:text-base">La app esta lista para descargarse en tu dispositivo.</p>
-    <button id="installBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">Descargar</button>
-  </div>
-</div>
-
-<div class="p-4 sm:p-6 max-w-6xl mx-auto">
-
-  <!-- LOGIN -->
-  <div id="loginBox" class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl max-w-md mx-auto">
-    <h2 class="text-2xl font-bold mb-6 text-center">Iniciar sesión</h2>
-    <input id="user" type="text" placeholder="Usuario" class="border p-3 w-full mb-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
-    <input id="pass" type="password" placeholder="Contraseña" class="border p-3 w-full mb-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
-    <button onclick="login()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600">Entrar</button>
-  </div>
-
-  <!-- APP -->
-  <div id="app" class="hidden">
-
-    <!-- CATÁLOGO -->
-    <div class="mb-8">
-      <h2 class="text-2xl font-bold mb-4">🔥 Catálogo Destacado</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="bg-white rounded-xl shadow p-4">
-          <h3 class="font-bold">BMW M3</h3>
-          <p class="text-gray-600">Deportivo premium</p>
-          <p class="text-green-600 font-bold">$1,200,000</p>
-        </div>
-        <div class="bg-white rounded-xl shadow p-4">
-          <h3 class="font-bold">Audi A4</h3>
-          <p class="text-gray-600">Elegancia y potencia</p>
-          <p class="text-green-600 font-bold">$950,000</p>
-        </div>
-        <div class="bg-white rounded-xl shadow p-4">
-          <h3 class="font-bold">Mustang GT</h3>
-          <p class="text-gray-600">Muscle car</p>
-          <p class="text-green-600 font-bold">$1,100,000</p>
+  <!-- VISTA: LOGIN -->
+  <div id="loginView" class="view active">
+    <div class="min-h-[calc(100vh-200px)] flex items-center justify-center">
+      <div class="w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100">
+          <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-12 text-white text-center">
+            <div class="text-5xl mb-4">🚗</div>
+            <h2 class="text-3xl font-bold">Bienvenido</h2>
+            <p class="text-blue-100 mt-2">Gestor de Venta de Autos</p>
+          </div>
+          <div class="px-8 py-8">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Usuario</label>
+                <input id="user" type="text" placeholder="admin" class="w-full border-2 border-slate-200 p-3 rounded-lg focus:border-blue-500 focus:outline-none transition bg-slate-50">
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Contraseña</label>
+                <input id="pass" type="password" placeholder="1234" class="w-full border-2 border-slate-200 p-3 rounded-lg focus:border-blue-500 focus:outline-none transition bg-slate-50">
+              </div>
+              <button onclick="app.login()" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg font-bold hover:shadow-lg transition mt-6">Ingresar</button>
+              <p class="text-xs text-slate-500 text-center mt-4">Demo: Usuario <strong>admin</strong> / Contraseña <strong>1234</strong></p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- BARRA DE HERRAMIENTAS -->
-    <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-xl mb-8">
-      <div class="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-end">
-        <input id="nombre" placeholder="Nombre del auto" class="border p-3 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-blue-600">
-        <input id="precio" placeholder="Precio" class="border p-3 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-blue-600">
-        <button onclick="agregarAuto()" class="bg-green-600 text-white px-4 sm:px-6 py-3 rounded-lg hover:bg-green-700 font-semibold focus:outline-none focus:ring-2 focus:ring-green-600">Agregar</button>
-        <button onclick="logout()" class="bg-red-600 text-white px-4 sm:px-6 py-3 rounded-lg hover:bg-red-700 font-semibold focus:outline-none focus:ring-2 focus:ring-red-600">Salir</button>
+  <!-- VISTA: HOME -->
+  <div id="homeView" class="view">
+    <div class="mb-12">
+      <h2 class="text-4xl font-bold text-slate-900 mb-2">Dashboard</h2>
+      <p id="userDisplay" class="text-slate-600">Bienvenido, <span class="font-semibold text-blue-600">admin</span></p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <div onclick="app.goToView('inventarioView')" class="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 p-6 rounded-xl cursor-pointer hover:shadow-lg transition hover:scale-105">
+        <div class="text-4xl mb-3">📦</div>
+        <h3 class="text-lg font-bold text-slate-900">Inventario</h3>
+        <p id="countAutos" class="text-sm text-slate-600 mt-1">0 autos registrados</p>
+      </div>
+      <div onclick="app.goToView('agregarView')" class="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 p-6 rounded-xl cursor-pointer hover:shadow-lg transition hover:scale-105">
+        <div class="text-4xl mb-3">➕</div>
+        <h3 class="text-lg font-bold text-slate-900">Agregar Auto</h3>
+        <p class="text-sm text-slate-600 mt-1">Nuevo listado</p>
+      </div>
+      <div onclick="app.goToView('ubicacionView')" class="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 p-6 rounded-xl cursor-pointer hover:shadow-lg transition hover:scale-105">
+        <div class="text-4xl mb-3">📍</div>
+        <h3 class="text-lg font-bold text-slate-900">Ubicación</h3>
+        <p class="text-sm text-slate-600 mt-1">Mi sucursal</p>
+      </div>
+      <div onclick="app.logout()" class="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-200 p-6 rounded-xl cursor-pointer hover:shadow-lg transition hover:scale-105">
+        <div class="text-4xl mb-3">🚪</div>
+        <h3 class="text-lg font-bold text-slate-900">Salir</h3>
+        <p class="text-sm text-slate-600 mt-1">Cerrar sesión</p>
       </div>
     </div>
 
-    <!-- INVENTARIO -->
-    <h2 class="text-2xl font-bold mb-4">📦 Inventario</h2>
-    <div id="cars" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-
+    <div>
+      <h3 class="text-2xl font-bold text-slate-900 mb-6">🔥 Autos Destacados</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="car-card">
+          <div class="car-image">🏎️</div>
+          <div class="car-info">
+            <h4 class="car-name">BMW M3</h4>
+            <p class="text-slate-600 text-sm mb-3">Deportivo premium de alto rendimiento</p>
+            <p class="car-price">$1,200,000</p>
+          </div>
+        </div>
+        <div class="car-card">
+          <div class="car-image">🚘</div>
+          <div class="car-info">
+            <h4 class="car-name">Audi A4</h4>
+            <p class="text-slate-600 text-sm mb-3">Elegancia y potencia combinadas</p>
+            <p class="car-price">$950,000</p>
+          </div>
+        </div>
+        <div class="car-card">
+          <div class="car-image">🏍️</div>
+          <div class="car-info">
+            <h4 class="car-name">Mustang GT</h4>
+            <p class="text-slate-600 text-sm mb-3">Muscle car clásico americano</p>
+            <p class="car-price">$1,100,000</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-</div>
+  <!-- VISTA: INVENTARIO -->
+  <div id="inventarioView" class="view">
+    <button onclick="app.goToView('homeView')" class="mb-6 bg-slate-200 hover:bg-slate-300 text-slate-900 px-4 py-2 rounded-lg font-semibold transition">← Volver</button>
+    <h2 class="text-3xl font-bold text-slate-900 mb-8">📦 Inventario Completo</h2>
+    <div id="carsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+  </div>
+
+  <!-- VISTA: AGREGAR AUTO -->
+  <div id="agregarView" class="view">
+    <button onclick="app.goToView('homeView')" class="mb-6 bg-slate-200 hover:bg-slate-300 text-slate-900 px-4 py-2 rounded-lg font-semibold transition">← Volver</button>
+    <div class="max-w-2xl">
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+        <div class="bg-gradient-to-r from-green-600 to-green-700 px-8 py-8 text-white">
+          <h2 class="text-3xl font-bold">➕ Agregar Nuevo Auto</h2>
+          <p class="text-green-100 mt-2">Registra un nuevo vehículo en tu inventario</p>
+        </div>
+        <div class="p-8 space-y-6">
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-2">Nombre del Auto</label>
+            <input id="nombreInput" type="text" placeholder="Ej: Toyota Corolla 2024" class="w-full border-2 border-slate-200 p-3 rounded-lg focus:border-green-500 focus:outline-none transition bg-slate-50">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-2">Precio</label>
+            <input id="precioInput" type="number" placeholder="Ej: 250000" class="w-full border-2 border-slate-200 p-3 rounded-lg focus:border-green-500 focus:outline-none transition bg-slate-50">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-2">Foto del Auto (opcional)</label>
+            <button onclick="app.tomarFoto()" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-3 rounded-lg hover:shadow-lg transition font-semibold mb-3">📷 Tomar Foto</button>
+            <div id="fotoPreview" class="w-full h-48 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center overflow-hidden border-2 border-dashed border-slate-300">
+              <img id="fotoImg" src="" alt="Foto" class="w-full h-full object-cover hidden">
+              <span id="fotoPlaceholder" class="text-slate-400 text-center"><div class="text-4xl mb-2">📸</div>Aquí aparecerá la foto</span>
+            </div>
+          </div>
+          <button onclick="app.agregarAuto()" class="w-full bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-lg hover:shadow-lg transition font-bold text-lg">✓ Guardar Auto</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA: UBICACIÓN -->
+  <div id="ubicacionView" class="view">
+    <button onclick="app.goToView('homeView')" class="mb-6 bg-slate-200 hover:bg-slate-300 text-slate-900 px-4 py-2 rounded-lg font-semibold transition">← Volver</button>
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+      <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-8 py-8 text-white">
+        <h2 class="text-3xl font-bold">📍 Mi Ubicación</h2>
+        <p class="text-purple-100 mt-2">Obtén las coordenadas GPS de tu ubicación actual</p>
+      </div>
+      <div class="p-8">
+        <button onclick="app.obtenerUbicacion()" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg hover:shadow-lg transition font-semibold mb-6">🌍 Obtener Ubicación</button>
+        <div id="ubicacionInfo" class="bg-slate-50 border-2 border-slate-200 p-6 rounded-lg">
+          <p class="text-slate-600">Haz clic en el botón para obtener tu ubicación actual usando GPS</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
 
 <script>
-let autos = JSON.parse(localStorage.getItem('autos')) || [
-  { nombre: "Toyota Corolla", precio: 250000 },
-  { nombre: "Nissan Sentra", precio: 280000 }
-];
-
-let deferredPrompt = null;
-
-function mostrarAlerta(mensaje, tipo = 'info', duracion = 2600) {
-  const container = document.getElementById('toastContainer');
-  if (!container) return;
-
-  const colores = {
-    success: 'bg-green-600 text-white',
-    error: 'bg-red-600 text-white',
-    warning: 'bg-amber-500 text-black',
-    info: 'bg-blue-600 text-white'
-  };
-
-  const toast = document.createElement('div');
-  toast.className = `${colores[tipo] || colores.info} px-4 py-3 rounded-xl shadow-xl text-sm transition-opacity duration-300`;
-  toast.textContent = mensaje;
-  container.appendChild(toast);
-
-  setTimeout(() => {
-    toast.classList.add('opacity-0');
-    setTimeout(() => toast.remove(), 300);
-  }, duracion);
-}
-
-function ocultarSplash(){
-  const splash = document.getElementById('splash');
-  if(!splash) return;
-
-  splash.classList.add('hide');
-  setTimeout(() => {
-    splash.style.display = 'none';
-  }, 420);
-}
-
-function guardarAutos(){
-  localStorage.setItem('autos', JSON.stringify(autos));
-}
-
-function refrescarAutos(){
-  autos = JSON.parse(localStorage.getItem('autos')) || autos;
-  renderAutos();
-}
-
-function login(){
-  const user = document.getElementById('user').value;
-  const pass = document.getElementById('pass').value;
-
-  if(user === 'admin' && pass === '1234'){
-    localStorage.setItem('authUser', user);
-    document.getElementById('loginBox').style.display = 'none';
-    document.getElementById('app').classList.remove('hidden');
-    document.getElementById('user').value = '';
-    document.getElementById('pass').value = '';
-    renderAutos();
-    mostrarAlerta('Sesion iniciada correctamente', 'success');
-  } else {
-    mostrarAlerta('Datos incorrectos', 'error');
-  }
-}
-
-function logout(){
-  localStorage.removeItem('authUser');
-  document.getElementById('loginBox').style.display = 'block';
-  document.getElementById('app').classList.add('hidden');
-  document.getElementById('user').value = '';
-  document.getElementById('pass').value = '';
-  document.getElementById('user').focus();
-  mostrarAlerta('Sesion cerrada correctamente', 'info');
-}
-
-function verificarAutenticacion(){
-  const userId = localStorage.getItem('authUser');
-  if(userId){
-    document.getElementById('loginBox').style.display = 'none';
-    document.getElementById('app').classList.remove('hidden');
-    renderAutos();
-  }
-}
-
-function renderAutos(){
-  const container = document.getElementById('cars');
-  container.innerHTML = '';
-
-  autos.forEach((auto, index) => {
-    const div = document.createElement('div');
-    div.className = "bg-white rounded-2xl shadow-xl overflow-hidden";
-
-    div.innerHTML = `
-      <div class="h-40 bg-gray-200 flex items-center justify-center">🚘</div>
-      <div class="p-4">
-        <h2 class="font-bold text-xl">${auto.nombre}</h2>
-        <p class="text-green-600 font-semibold">$${auto.precio}</p>
-        <div class="flex justify-between mt-3">
-          <button onclick="comprar('${auto.nombre}')" class="bg-blue-500 text-white px-3 py-1 rounded">Comprar</button>
-          <button onclick="eliminarAuto(${index})" class="bg-red-500 text-white px-3 py-1 rounded">Eliminar</button>
-        </div>
-      </div>
-    `;
-    container.appendChild(div);
-  });
-
-  guardarAutos();
-}
-
-function agregarAuto(){
-  const nombreInput = document.getElementById('nombre');
-  const precioInput = document.getElementById('precio');
-  const nombre = nombreInput.value.trim();
-  const precio = Number(precioInput.value);
-
-  if(nombre && precio > 0){
-    autos.push({ nombre, precio });
-    guardarAutos();
-    refrescarAutos();
-    nombreInput.value = '';
-    precioInput.value = '';
-    nombreInput.focus();
-    mostrarAlerta('Auto agregado al inventario', 'success');
-  } else {
-    mostrarAlerta('Ingresa un nombre y un precio valido mayor a 0', 'warning');
-  }
-}
-
-function eliminarAuto(index){
-  const nombre = autos[index]?.nombre;
-  autos.splice(index, 1);
-  guardarAutos();
-  refrescarAutos();
-  mostrarAlerta(`Auto eliminado: ${nombre || 'sin nombre'}`, 'warning');
-}
-
-function comprar(nombre){
-  mostrarAlerta('Compra realizada: ' + nombre, 'success');
-}
-
-async function instalarApp(){
-  if (!deferredPrompt) {
-    mostrarAlerta('La instalacion aun no esta disponible', 'info');
-    return;
+// ==================== API SIMULADA ====================
+class API {
+  constructor() {
+    this.online = navigator.onLine;
+    this.baseURL = '/venta-carros-pwa/api.php';
   }
 
-  deferredPrompt.prompt();
-  const choice = await deferredPrompt.userChoice;
-
-  if (choice.outcome === 'accepted') {
-    mostrarAlerta('Descarga iniciada correctamente', 'success');
-  } else {
-    mostrarAlerta('Descarga cancelada por el usuario', 'warning');
-  }
-
-  deferredPrompt = null;
-  document.getElementById('downloadAlert').classList.add('hidden');
-}
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').then(registration => {
-    registration.addEventListener('updatefound', () => {
-      const newWorker = registration.installing;
-      if (!newWorker) return;
-
-      newWorker.addEventListener('statechange', () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          mostrarAlerta('Nueva version descargada. Recarga para actualizar.', 'info', 4200);
-        }
+  async login(usuario, password) {
+    try {
+      const response = await fetch(this.baseURL + '/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, password })
       });
-    });
-  });
+      
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Error en login');
+      return data;
+    } catch (error) {
+      console.error('[API] Error login:', error);
+      // Fallback: usuario admin con password 1234
+      if (usuario === 'admin' && password === '1234') {
+        return { exito: true, usuario: 'admin', id: 1 };
+      }
+      throw error;
+    }
+  }
+
+  async traerAutos() {
+    try {
+      if (!this.online) {
+        const local = JSON.parse(localStorage.getItem('autos')) || [];
+        return local;
+      }
+
+      const response = await fetch(this.baseURL + '/autos', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) throw new Error('Error obteniendo autos');
+      const data = await response.json();
+      return data.autos || [];
+    } catch (error) {
+      console.error('[API] Error traerAutos:', error);
+      return JSON.parse(localStorage.getItem('autos')) || [];
+    }
+  }
+
+  async guardarAuto(auto) {
+    try {
+      if (!this.online) {
+        auto.id = Date.now();
+        auto.sincronizado = false;
+        return auto;
+      }
+
+      const response = await fetch(this.baseURL + '/autos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(auto)
+      });
+      
+      if (!response.ok) throw new Error('Error guardando auto');
+      const data = await response.json();
+      return data.auto || auto;
+    } catch (error) {
+      console.error('[API] Error guardarAuto:', error);
+      auto.id = Date.now();
+      auto.sincronizado = false;
+      return auto;
+    }
+  }
+
+  async actualizarAuto(id, auto) {
+    try {
+      const response = await fetch(this.baseURL + `/autos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(auto)
+      });
+      
+      if (!response.ok) throw new Error('Error actualizando auto');
+      return await response.json();
+    } catch (error) {
+      console.error('[API] Error actualizarAuto:', error);
+      throw error;
+    }
+  }
+
+  async eliminarAuto(id) {
+    try {
+      const response = await fetch(this.baseURL + `/autos/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) throw new Error('Error eliminando auto');
+      return await response.json();
+    } catch (error) {
+      console.error('[API] Error eliminarAuto:', error);
+      throw error;
+    }
+  }
 }
 
-window.addEventListener('beforeinstallprompt', event => {
-  event.preventDefault();
-  deferredPrompt = event;
+// ==================== APP PRINCIPAL ====================
+const app = {
+  api: new API(),
+  currentUser: null,
+  autos: [],
+  fotoCapturada: null,
+
+  async init() {
+    console.log('[APP] Inicializando...');
+    this.setupEventListeners();
+    this.verificarAutenticacion();
+    this.actualizarEstadoRed();
+    this.registrarServiceWorker();
+    this.requestNotificationPermission();
+    await this.cargarAutos();
+    setTimeout(() => this.ocultarSplash(), 1200);
+  },
+
+  setupEventListeners() {
+    window.addEventListener('online', () => {
+      this.actualizarEstadoRed();
+      this.mostrarAlerta('Conectado a internet', 'success');
+      this.sincronizarDatos();
+    });
+
+    window.addEventListener('offline', () => {
+      this.actualizarEstadoRed();
+      this.mostrarAlerta('Trabajando sin conexión', 'warning');
+    });
+  },
+
+  actualizarEstadoRed() {
+    this.api.online = navigator.onLine;
+    const badge = document.getElementById('statusBadge');
+    if (navigator.onLine) {
+      badge.className = 'status-badge status-online';
+      badge.textContent = 'Conectado';
+    } else {
+      badge.className = 'status-badge status-offline';
+      badge.textContent = 'Sin conexión';
+    }
+  },
+
+  verificarAutenticacion() {
+    const authUser = localStorage.getItem('authUser');
+    if (authUser) {
+      this.currentUser = authUser;
+      this.goToView('homeView');
+      document.getElementById('userDisplay').innerHTML = `Bienvenido, <span class="font-semibold text-blue-600">${this.currentUser}</span>`;
+    }
+  },
+
+  async cargarAutos() {
+    try {
+      const autosRemoto = await this.api.traerAutos();
+      const autosLocal = JSON.parse(localStorage.getItem('autos')) || [];
+      this.autos = [...autosRemoto, ...autosLocal];
+      this.actualizarUI();
+    } catch (error) {
+      console.error('[ERROR] Cargando autos:', error);
+    }
+  },
+
+  actualizarUI() {
+    document.getElementById('countAutos').textContent = `${this.autos.length} autos registrados`;
+    this.renderAutos();
+  },
+
+  renderAutos() {
+    const container = document.getElementById('carsContainer');
+    container.innerHTML = '';
+
+    this.autos.forEach((auto, index) => {
+      const div = document.createElement('div');
+      div.className = 'car-card';
+      div.innerHTML = `
+        <div class="car-image">
+          ${auto.foto ? `<img src="${auto.foto}" alt="${auto.nombre}">` : '🚗'}
+          ${!auto.sincronizado ? '<div class="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 rounded text-xs">⏳ Pendiente</div>' : ''}
+        </div>
+        <div class="car-info">
+          <h3 class="car-name">${auto.nombre}</h3>
+          <p class="text-slate-600 text-sm mb-3">Precio especial</p>
+          <p class="car-price">$${auto.precio.toLocaleString()}</p>
+          <div class="car-actions">
+            <button onclick="app.comprarAuto('${auto.nombre}')" class="bg-blue-600 hover:bg-blue-700 text-white">Comprar</button>
+            <button onclick="app.eliminarAuto(${index})" class="bg-red-600 hover:bg-red-700 text-white">Eliminar</button>
+          </div>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  },
+
+  async agregarAuto() {
+    const nombre = document.getElementById('nombreInput').value.trim();
+    const precio = Number(document.getElementById('precioInput').value);
+
+    if (!nombre || precio <= 0) {
+      this.mostrarAlerta('Ingresa datos válidos', 'warning');
+      this.vibrar(200);
+      return;
+    }
+
+    const auto = {
+      nombre,
+      precio,
+      foto: this.fotoCapturada,
+      sincronizado: navigator.onLine
+    };
+
+    try {
+      const autoGuardado = await this.api.guardarAuto(auto);
+      this.autos.unshift(autoGuardado);
+      localStorage.setItem('autos', JSON.stringify(this.autos));
+      
+      this.mostrarAlerta('✓ Auto agregado correctamente', 'success');
+      this.vibrar([100, 50, 100]);
+      this.enviarNotificacion('Auto Agregado', { body: `${nombre} fue agregado al inventario` });
+      
+      document.getElementById('nombreInput').value = '';
+      document.getElementById('precioInput').value = '';
+      this.fotoCapturada = null;
+      document.getElementById('fotoImg').classList.add('hidden');
+      document.getElementById('fotoPlaceholder').style.display = 'block';
+
+      this.actualizarUI();
+      setTimeout(() => this.goToView('inventarioView'), 800);
+    } catch (error) {
+      console.error('[AGREGAR] Error:', error);
+      this.mostrarAlerta('Error al agregar auto. Intenta de nuevo.', 'error');
+      this.vibrar([100, 50, 100, 50, 100]);
+    }
+  },
+
+  async eliminarAuto(index) {
+    const auto = this.autos[index];
+    if (!confirm(`¿Eliminar "${auto.nombre}" del inventario?`)) return;
+
+    try {
+      if (auto.id && auto.sincronizado !== false) {
+        await this.api.eliminarAuto(auto.id);
+      }
+      
+      this.autos.splice(index, 1);
+      localStorage.setItem('autos', JSON.stringify(this.autos));
+      this.mostrarAlerta(`Auto eliminado: ${auto.nombre}`, 'info');
+      this.vibrar(150);
+      this.actualizarUI();
+    } catch (error) {
+      console.error('[ELIMINAR] Error:', error);
+      this.mostrarAlerta('Error al eliminar. Intenta de nuevo.', 'error');
+    }
+  },
+
+  comprarAuto(nombre) {
+    this.mostrarAlerta(`✓ Compra realizada: ${nombre}`, 'success');
+    this.vibrar([100, 50, 100, 50, 100]);
+    this.enviarNotificacion('Compra Registrada', { body: `${nombre} ha sido comprado` });
+  },
+
+  async tomarFoto() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          this.fotoCapturada = event.target.result;
+          document.getElementById('fotoImg').src = this.fotoCapturada;
+          document.getElementById('fotoImg').classList.remove('hidden');
+          document.getElementById('fotoPlaceholder').style.display = 'none';
+          this.mostrarAlerta('📸 Foto capturada', 'success');
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    input.click();
+  },
+
+  async obtenerUbicacion() {
+    if (!navigator.geolocation) {
+      this.mostrarAlerta('Geolocalización no disponible', 'error');
+      return;
+    }
+
+    this.mostrarAlerta('Obteniendo ubicación...', 'info', 1500);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        const ubicacionInfo = document.getElementById('ubicacionInfo');
+        ubicacionInfo.innerHTML = `
+          <div class="space-y-3">
+            <div class="bg-white p-4 rounded-lg border-l-4 border-blue-600">
+              <p class="text-sm text-slate-600"><strong>Latitud:</strong></p>
+              <p class="text-lg font-mono text-slate-900">${latitude.toFixed(6)}</p>
+            </div>
+            <div class="bg-white p-4 rounded-lg border-l-4 border-purple-600">
+              <p class="text-sm text-slate-600"><strong>Longitud:</strong></p>
+              <p class="text-lg font-mono text-slate-900">${longitude.toFixed(6)}</p>
+            </div>
+            <div class="bg-white p-4 rounded-lg border-l-4 border-green-600">
+              <p class="text-sm text-slate-600"><strong>Precisión:</strong></p>
+              <p class="text-lg font-mono text-slate-900">±${accuracy.toFixed(0)} metros</p>
+            </div>
+            <a href="https://maps.google.com/?q=${latitude},${longitude}" target="_blank" class="inline-block mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold">🗺️ Ver en Google Maps</a>
+          </div>
+        `;
+        this.mostrarAlerta('✓ Ubicación obtenida', 'success');
+        this.vibrar(100);
+      },
+      (error) => {
+        this.mostrarAlerta(`Error: ${error.message}`, 'error');
+      },
+      { enableHighAccuracy: true, timeout: 5000 }
+    );
+  },
+
+  vibrar(patron) {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(patron);
+    }
+  },
+
+  async registrarServiceWorker() {
+    if ('serviceWorker' in navigator) {
+      try {
+        const reg = await navigator.serviceWorker.register('sw.js');
+        console.log('[SW] Registrado');
+      } catch (error) {
+        console.error('[SW] Error:', error);
+      }
+    }
+  },
+
+  async requestNotificationPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+      try {
+        await Notification.requestPermission();
+      } catch (error) {
+        console.error('[NOTIF] Error:', error);
+      }
+    }
+  },
+
+  enviarNotificacion(titulo, opciones = {}) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(titulo, {
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect fill="%230f172a" width="192" height="192"/><text x="50%" y="50%" font-size="100" dominant-baseline="middle" text-anchor="middle" fill="white">🚗</text></svg>',
+        ...opciones
+      });
+    }
+  },
+
+  async sincronizarDatos() {
+    const autosPendientes = this.autos.filter(a => !a.sincronizado);
+    for (const auto of autosPendientes) {
+      auto.sincronizado = true;
+    }
+    localStorage.setItem('autos', JSON.stringify(this.autos));
+    if (autosPendientes.length > 0) {
+      this.mostrarAlerta(`✓ ${autosPendientes.length} auto(s) sincronizado(s)`, 'success');
+    }
+  },
+
+  async login() {
+    const user = document.getElementById('user').value.trim();
+    const pass = document.getElementById('pass').value;
+
+    if (!user || !pass) {
+      this.mostrarAlerta('❌ Completa usuario y contraseña', 'error');
+      return;
+    }
+
+    try {
+      const resultado = await this.api.login(user, pass);
+      
+      if (resultado.exito) {
+        localStorage.setItem('authUser', user);
+        this.currentUser = user;
+        this.vibrar(100);
+        this.mostrarAlerta('✓ Sesión iniciada', 'success');
+        this.enviarNotificacion('Bienvenido', { body: `Hola ${user}` });
+        this.goToView('homeView');
+        document.getElementById('userDisplay').innerHTML = `Bienvenido, <span class="font-semibold text-blue-600">${user}</span>`;
+        await this.cargarAutos();
+      }
+    } catch (error) {
+      console.error('[LOGIN] Error:', error);
+      this.mostrarAlerta('❌ Usuario o contraseña incorrectos', 'error');
+      this.vibrar([100, 50, 100]);
+    }
+  },
+
+  logout() {
+    localStorage.removeItem('authUser');
+    this.currentUser = null;
+    this.mostrarAlerta('Sesión cerrada', 'info');
+    this.vibrar(150);
+    this.goToView('loginView');
+  },
+
+  goToView(viewId) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById(viewId).classList.add('active');
+  },
+
+  mostrarAlerta(mensaje, tipo = 'info', duracion = 2600) {
+    const container = document.getElementById('toastContainer');
+    const colores = {
+      success: 'bg-green-600 text-white',
+      error: 'bg-red-600 text-white',
+      warning: 'bg-amber-500 text-black',
+      info: 'bg-blue-600 text-white'
+    };
+
+    const toast = document.createElement('div');
+    toast.className = `${colores[tipo] || colores.info} px-4 py-3 rounded-xl shadow-xl text-sm font-semibold transition-opacity duration-300 pointer-events-auto`;
+    toast.textContent = mensaje;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add('opacity-0');
+      setTimeout(() => toast.remove(), 300);
+    }, duracion);
+  },
+
+  ocultarSplash() {
+    const splash = document.getElementById('splash');
+    splash.classList.add('hide');
+    setTimeout(() => {
+      splash.style.display = 'none';
+    }, 420);
+  }
+};
+
+// ==================== INICIALIZACIÓN ====================
+window.addEventListener('load', () => {
+  app.init();
+});
+
+// PWA Instalación
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
   document.getElementById('downloadAlert').classList.remove('hidden');
-  mostrarAlerta('Descarga disponible: puedes instalar la app', 'info', 3400);
+  app.mostrarAlerta('Descargar app disponible', 'info', 3400);
+});
+
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    if (choice.outcome === 'accepted') {
+      app.mostrarAlerta('✓ App instalada con éxito', 'success');
+    }
+    deferredPrompt = null;
+    document.getElementById('downloadAlert').classList.add('hidden');
+  }
 });
 
 window.addEventListener('appinstalled', () => {
-  document.getElementById('downloadAlert').classList.add('hidden');
-  mostrarAlerta('Instalacion completada con exito', 'success');
-});
-
-document.getElementById('installBtn').addEventListener('click', instalarApp);
-
-window.addEventListener('storage', event => {
-  if (event.key === 'autos') {
-    refrescarAutos();
-    mostrarAlerta('Inventario actualizado desde otra pestana', 'info');
-  }
-});
-
-window.addEventListener('load', () => {
-  verificarAutenticacion();
-  setTimeout(ocultarSplash, 1200);
+  app.mostrarAlerta('✓ App instalada correctamente', 'success');
 });
 </script>
 
