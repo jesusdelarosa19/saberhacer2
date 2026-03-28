@@ -978,6 +978,11 @@ window.addEventListener('beforeinstallprompt', (e) => {
   deferredPrompt = e;
   document.getElementById('downloadAlert').classList.remove('hidden');
   app.mostrarAlerta('Descargar app disponible', 'info', 3400);
+  
+  // Ocultar alerta después de 5 segundos
+  setTimeout(() => {
+    document.getElementById('downloadAlert').classList.add('hidden');
+  }, 5000);
 });
 
 document.getElementById('installBtn').addEventListener('click', async () => {
