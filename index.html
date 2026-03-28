@@ -4,10 +4,51 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Venta de Carros PRO</title>
+  <meta name="theme-color" content="#000000">
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    #splash {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 0.75rem;
+      background: radial-gradient(circle at 20% 20%, #2d3748, #000000 60%);
+      color: #ffffff;
+      z-index: 9999;
+      transition: opacity 0.4s ease;
+    }
+
+    #splash.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body class="bg-gradient-to-br from-gray-100 to-gray-300 min-h-screen">
+
+<div id="splash" aria-live="polite" aria-label="Cargando aplicación">
+  <div class="text-4xl">🚗</div>
+  <h1 class="text-2xl font-bold tracking-wide">Venta de Carros PRO</h1>
+  <div class="spinner" aria-hidden="true"></div>
+  <p class="text-sm opacity-90">Cargando inventario...</p>
+</div>
 
 <header class="bg-black text-white p-5 text-center text-3xl font-bold shadow-lg">
   🚗 Venta de Carros PRO
@@ -69,6 +110,25 @@ let autos = JSON.parse(localStorage.getItem('autos')) || [
   { nombre: "Nissan Sentra", precio: 280000 }
 ];
 
+function ocultarSplash(){
+  const splash = document.getElementById('splash');
+  if(!splash) return;
+
+  splash.classList.add('hide');
+  setTimeout(() => {
+    splash.style.display = 'none';
+  }, 420);
+}
+
+function guardarAutos(){
+  localStorage.setItem('autos', JSON.stringify(autos));
+}
+
+function refrescarAutos(){
+  autos = JSON.parse(localStorage.getItem('autos')) || autos;
+  renderAutos();
+}
+
 function login(){
   const user = document.getElementById('user').value;
   const pass = document.getElementById('pass').value;
@@ -104,22 +164,31 @@ function renderAutos(){
     container.appendChild(div);
   });
 
-  localStorage.setItem('autos', JSON.stringify(autos));
+  guardarAutos();
 }
 
 function agregarAuto(){
-  const nombre = document.getElementById('nombre').value;
-  const precio = document.getElementById('precio').value;
+  const nombreInput = document.getElementById('nombre');
+  const precioInput = document.getElementById('precio');
+  const nombre = nombreInput.value.trim();
+  const precio = Number(precioInput.value);
 
-  if(nombre && precio){
+  if(nombre && precio > 0){
     autos.push({ nombre, precio });
-    renderAutos();
+    guardarAutos();
+    refrescarAutos();
+    nombreInput.value = '';
+    precioInput.value = '';
+    nombreInput.focus();
+  } else {
+    alert('Ingresa un nombre y un precio valido mayor a 0');
   }
 }
 
 function eliminarAuto(index){
   autos.splice(index, 1);
-  renderAutos();
+  guardarAutos();
+  refrescarAutos();
 }
 
 function comprar(nombre){
@@ -129,6 +198,16 @@ function comprar(nombre){
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js');
 }
+
+window.addEventListener('storage', event => {
+  if (event.key === 'autos') {
+    refrescarAutos();
+  }
+});
+
+window.addEventListener('load', () => {
+  setTimeout(ocultarSplash, 1200);
+});
 </script>
 
 </body>

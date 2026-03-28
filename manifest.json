@@ -1,8 +1,11 @@
 {
   "name": "Venta de Carros PRO",
   "short_name": "CarrosPRO",
-  "start_url": "index.html",
+  "description": "Gestiona y vende autos desde tu PWA",
+  "start_url": "/index.html",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "orientation": "portrait",
+  "background_color": "#000000",
   "theme_color": "#000000"
 } 
