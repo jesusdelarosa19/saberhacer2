@@ -1,0 +1,8 @@
+{
+  "name": "Venta de Carros PRO",
+  "short_name": "CarrosPRO",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000"
+} 

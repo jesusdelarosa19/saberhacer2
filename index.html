@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Venta de Carros PRO</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-100 to-gray-300 min-h-screen">
+
+<header class="bg-black text-white p-5 text-center text-3xl font-bold shadow-lg">
+  🚗 Venta de Carros PRO
+</header>
+
+<div class="p-6 max-w-6xl mx-auto">
+
+  <!-- LOGIN -->
+  <div id="loginBox" class="bg-white p-8 rounded-2xl shadow-xl max-w-md mx-auto">
+    <h2 class="text-2xl font-bold mb-6 text-center">Iniciar sesión</h2>
+    <input id="user" type="text" placeholder="Usuario" class="border p-3 w-full mb-3 rounded-lg">
+    <input id="pass" type="password" placeholder="Contraseña" class="border p-3 w-full mb-4 rounded-lg">
+    <button onclick="login()" class="w-full bg-blue-600 text-white py-3 rounded-lg">Entrar</button>
+  </div>
+
+  <!-- APP -->
+  <div id="app" class="hidden">
+
+    <!-- CATÁLOGO -->
+    <div class="mb-8">
+      <h2 class="text-2xl font-bold mb-4">🔥 Catálogo Destacado</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-white rounded-xl shadow p-4">
+          <h3 class="font-bold">BMW M3</h3>
+          <p class="text-gray-600">Deportivo premium</p>
+          <p class="text-green-600 font-bold">$1,200,000</p>
+        </div>
+        <div class="bg-white rounded-xl shadow p-4">
+          <h3 class="font-bold">Audi A4</h3>
+          <p class="text-gray-600">Elegancia y potencia</p>
+          <p class="text-green-600 font-bold">$950,000</p>
+        </div>
+        <div class="bg-white rounded-xl shadow p-4">
+          <h3 class="font-bold">Mustang GT</h3>
+          <p class="text-gray-600">Muscle car</p>
+          <p class="text-green-600 font-bold">$1,100,000</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORMULARIO -->
+    <div class="bg-white p-6 rounded-2xl shadow-xl mb-8 flex flex-col md:flex-row gap-4">
+      <input id="nombre" placeholder="Nombre del auto" class="border p-3 rounded-lg w-full">
+      <input id="precio" placeholder="Precio" class="border p-3 rounded-lg w-full">
+      <button onclick="agregarAuto()" class="bg-green-600 text-white px-6 py-3 rounded-lg">Agregar</button>
+    </div>
+
+    <!-- INVENTARIO -->
+    <h2 class="text-2xl font-bold mb-4">📦 Inventario</h2>
+    <div id="cars" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+  </div>
+
+</div>
+
+<script>
+let autos = JSON.parse(localStorage.getItem('autos')) || [
+  { nombre: "Toyota Corolla", precio: 250000 },
+  { nombre: "Nissan Sentra", precio: 280000 }
+];
+
+function login(){
+  const user = document.getElementById('user').value;
+  const pass = document.getElementById('pass').value;
+
+  if(user === 'admin' && pass === '1234'){
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('app').classList.remove('hidden');
+    renderAutos();
+  } else {
+    alert('Datos incorrectos');
+  }
+}
+
+function renderAutos(){
+  const container = document.getElementById('cars');
+  container.innerHTML = '';
+
+  autos.forEach((auto, index) => {
+    const div = document.createElement('div');
+    div.className = "bg-white rounded-2xl shadow-xl overflow-hidden";
+
+    div.innerHTML = `
+      <div class="h-40 bg-gray-200 flex items-center justify-center">🚘</div>
+      <div class="p-4">
+        <h2 class="font-bold text-xl">${auto.nombre}</h2>
+        <p class="text-green-600 font-semibold">$${auto.precio}</p>
+        <div class="flex justify-between mt-3">
+          <button onclick="comprar('${auto.nombre}')" class="bg-blue-500 text-white px-3 py-1 rounded">Comprar</button>
+          <button onclick="eliminarAuto(${index})" class="bg-red-500 text-white px-3 py-1 rounded">Eliminar</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  localStorage.setItem('autos', JSON.stringify(autos));
+}
+
+function agregarAuto(){
+  const nombre = document.getElementById('nombre').value;
+  const precio = document.getElementById('precio').value;
+
+  if(nombre && precio){
+    autos.push({ nombre, precio });
+    renderAutos();
+  }
+}
+
+function eliminarAuto(index){
+  autos.splice(index, 1);
+  renderAutos();
+}
+
+function comprar(nombre){
+  alert('🚗 Compra realizada: ' + nombre);
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+
+</body>
+</html>
