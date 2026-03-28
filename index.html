@@ -248,7 +248,7 @@
 
   <!-- VISTA: LOGIN -->
   <div id="loginView" class="view active">
-    <div class="min-h-[calc(100vh-200px)] flex items-center justify-center">
+    <div class="min-h-[calc(100vh-200px)] flex items-center justify-center py-8">
       <div class="w-full max-w-md">
         <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100">
           <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-12 text-white text-center">
@@ -256,19 +256,47 @@
             <h2 class="text-3xl font-bold">Bienvenido</h2>
             <p class="text-blue-100 mt-2">Gestor de Venta de Autos</p>
           </div>
-          <div class="px-8 py-8">
-            <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Usuario</label>
-                <input id="user" type="text" placeholder="admin" class="w-full border-2 border-slate-200 p-3 rounded-lg focus:border-blue-500 focus:outline-none transition bg-slate-50">
-              </div>
-              <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Contraseña</label>
-                <input id="pass" type="password" placeholder="1234" class="w-full border-2 border-slate-200 p-3 rounded-lg focus:border-blue-500 focus:outline-none transition bg-slate-50">
-              </div>
-              <button onclick="app.login()" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg font-bold hover:shadow-lg transition mt-6">Ingresar</button>
-              <p class="text-xs text-slate-500 text-center mt-4">Demo: Usuario <strong>admin</strong> / Contraseña <strong>1234</strong></p>
+
+          <!-- Toggle entre Login y Registro -->
+          <div class="flex border-b border-slate-200">
+            <button onclick="app.toggleAuthForm('login')" id="loginTab" class="flex-1 py-4 text-center font-bold text-blue-600 border-b-2 border-blue-600 bg-blue-50">Iniciar Sesión</button>
+            <button onclick="app.toggleAuthForm('register')" id="registerTab" class="flex-1 py-4 text-center font-bold text-slate-500">Registrarse</button>
+          </div>
+
+          <!-- FORM: LOGIN -->
+          <div id="loginForm" class="px-8 py-8 space-y-4">
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">Usuario</label>
+              <input id="loginUser" type="text" placeholder="admin" class="w-full border-2 border-slate-200 p-3 rounded-lg focus:border-blue-500 focus:outline-none transition bg-slate-50">
             </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">Contraseña</label>
+              <input id="loginPass" type="password" placeholder="1234" class="w-full border-2 border-slate-200 p-3 rounded-lg focus:border-blue-500 focus:outline-none transition bg-slate-50">
+            </div>
+            <button onclick="app.login()" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg font-bold hover:shadow-lg transition mt-6">Ingresar</button>
+            <p class="text-xs text-slate-500 text-center mt-4">Demo: <strong>admin</strong> / <strong>1234</strong></p>
+          </div>
+
+          <!-- FORM: REGISTRO -->
+          <div id="registerForm" class="px-8 py-8 space-y-4 hidden">
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">Nuevo Usuario</label>
+              <input id="regUser" type="text" placeholder="tu_usuario" class="w-full border-2 border-slate-200 p-3 rounded-lg focus:border-blue-500 focus:outline-none transition bg-slate-50">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">Email</label>
+              <input id="regEmail" type="email" placeholder="tu@email.com" class="w-full border-2 border-slate-200 p-3 rounded-lg focus:border-blue-500 focus:outline-none transition bg-slate-50">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">Contraseña</label>
+              <input id="regPass" type="password" placeholder="Mínimo 6 caracteres" class="w-full border-2 border-slate-200 p-3 rounded-lg focus:border-blue-500 focus:outline-none transition bg-slate-50">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">Confirmar Contraseña</label>
+              <input id="regPassConfirm" type="password" placeholder="Repetir contraseña" class="w-full border-2 border-slate-200 p-3 rounded-lg focus:border-blue-500 focus:outline-none transition bg-slate-50">
+            </div>
+            <button onclick="app.registrarse()" class="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 rounded-lg font-bold hover:shadow-lg transition mt-6">Crear Cuenta</button>
+            <p class="text-xs text-slate-500 text-center mt-4">Tu cuenta te permitirá acceder desde cualquier dispositivo</p>
           </div>
         </div>
       </div>
@@ -775,9 +803,97 @@ const app = {
     }
   },
 
+  toggleAuthForm(tipo) {
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const loginTab = document.getElementById('loginTab');
+    const registerTab = document.getElementById('registerTab');
+
+    if (tipo === 'login') {
+      loginForm.classList.remove('hidden');
+      registerForm.classList.add('hidden');
+      loginTab.classList.add('bg-blue-50', 'text-blue-600', 'border-b-2', 'border-blue-600');
+      loginTab.classList.remove('text-slate-500');
+      registerTab.classList.remove('bg-blue-50', 'text-blue-600', 'border-b-2', 'border-blue-600');
+      registerTab.classList.add('text-slate-500');
+    } else {
+      loginForm.classList.add('hidden');
+      registerForm.classList.remove('hidden');
+      registerTab.classList.add('bg-blue-50', 'text-blue-600', 'border-b-2', 'border-blue-600');
+      registerTab.classList.remove('text-slate-500');
+      loginTab.classList.remove('bg-blue-50', 'text-blue-600', 'border-b-2', 'border-blue-600');
+      loginTab.classList.add('text-slate-500');
+    }
+  },
+
+  async registrarse() {
+    const usuario = document.getElementById('regUser').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPass').value;
+    const confirmPass = document.getElementById('regPassConfirm').value;
+
+    // Validaciones
+    if (!usuario || !email || !password || !confirmPass) {
+      this.mostrarAlerta('❌ Completa todos los campos', 'error');
+      return;
+    }
+
+    if (usuario.length < 3) {
+      this.mostrarAlerta('❌ El usuario debe tener mínimo 3 caracteres', 'error');
+      return;
+    }
+
+    if (password.length < 6) {
+      this.mostrarAlerta('❌ La contraseña debe tener mínimo 6 caracteres', 'error');
+      return;
+    }
+
+    if (password !== confirmPass) {
+      this.mostrarAlerta('❌ Las contraseñas no coinciden', 'error');
+      this.vibrar([100, 50, 100]);
+      return;
+    }
+
+    if (!email.includes('@')) {
+      this.mostrarAlerta('❌ Email inválido', 'error');
+      return;
+    }
+
+    try {
+      const response = await fetch('/venta-carros-pwa/api.php/registro', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, email, password })
+      });
+
+      const data = await response.json();
+
+      if (data.exito) {
+        this.mostrarAlerta('✓ Cuenta creada exitosamente', 'success');
+        this.vibrar(100);
+        
+        // Limpiar formulario
+        document.getElementById('regUser').value = '';
+        document.getElementById('regEmail').value = '';
+        document.getElementById('regPass').value = '';
+        document.getElementById('regPassConfirm').value = '';
+
+        // Volver al formulario de login
+        setTimeout(() => this.toggleAuthForm('login'), 1000);
+      } else {
+        this.mostrarAlerta(`❌ ${data.error || 'Error al registrar'}`, 'error');
+        this.vibrar([100, 50, 100]);
+      }
+    } catch (error) {
+      console.error('[REGISTRO] Error:', error);
+      this.mostrarAlerta('❌ Error al registrar. Intenta de nuevo.', 'error');
+      this.vibrar([100, 50, 100]);
+    }
+  },
+
   async login() {
-    const user = document.getElementById('user').value.trim();
-    const pass = document.getElementById('pass').value;
+    const user = document.getElementById('loginUser').value.trim();
+    const pass = document.getElementById('loginPass').value;
 
     if (!user || !pass) {
       this.mostrarAlerta('❌ Completa usuario y contraseña', 'error');
@@ -796,6 +912,10 @@ const app = {
         this.goToView('homeView');
         document.getElementById('userDisplay').innerHTML = `Bienvenido, <span class="font-semibold text-blue-600">${user}</span>`;
         await this.cargarAutos();
+        
+        // Limpiar inputs
+        document.getElementById('loginUser').value = '';
+        document.getElementById('loginPass').value = '';
       }
     } catch (error) {
       console.error('[LOGIN] Error:', error);

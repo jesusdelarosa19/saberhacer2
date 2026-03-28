@@ -36,6 +36,73 @@ try {
         exit;
     }
     
+    // REGISTRO DE NUEVO USUARIO
+    if ($parametros[0] === 'api' && $parametros[1] === 'registro' && $metodo === 'POST') {
+        $datos = json_decode(file_get_contents('php://input'), true);
+        
+        $usuario = $conexion->real_escape_string($datos['usuario'] ?? '');
+        $email = $conexion->real_escape_string($datos['email'] ?? '');
+        $password = $datos['password'] ?? '';
+        
+        // Validaciones
+        if (empty($usuario) || empty($email) || empty($password)) {
+            http_response_code(400);
+            echo json_encode(['exito' => false, 'error' => 'Todos los campos son requeridos']);
+            exit;
+        }
+        
+        if (strlen($usuario) < 3) {
+            http_response_code(400);
+            echo json_encode(['exito' => false, 'error' => 'El usuario debe tener mínimo 3 caracteres']);
+            exit;
+        }
+        
+        if (strlen($password) < 6) {
+            http_response_code(400);
+            echo json_encode(['exito' => false, 'error' => 'La contraseña debe tener mínimo 6 caracteres']);
+            exit;
+        }
+        
+        // Verificar si el usuario ya existe
+        $sql_check = "SELECT * FROM usuarios WHERE usuario = '$usuario'";
+        $result = $conexion->query($sql_check);
+        
+        if ($result->num_rows > 0) {
+            http_response_code(409);
+            echo json_encode(['exito' => false, 'error' => 'El usuario ya existe']);
+            exit;
+        }
+        
+        // Verificar si el email ya está registrado
+        $sql_check_email = "SELECT * FROM usuarios WHERE email = '$email'";
+        $result_email = $conexion->query($sql_check_email);
+        
+        if ($result_email->num_rows > 0) {
+            http_response_code(409);
+            echo json_encode(['exito' => false, 'error' => 'El email ya está registrado']);
+            exit;
+        }
+        
+        // Hashear contraseña
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        
+        // Insertar nuevo usuario
+        $sql = "INSERT INTO usuarios (usuario, password, email) VALUES ('$usuario', '$hash', '$email')";
+        
+        if ($conexion->query($sql)) {
+            echo json_encode([
+                'exito' => true,
+                'mensaje' => 'Cuenta creada exitosamente',
+                'usuario' => $usuario,
+                'id' => $conexion->insert_id
+            ]);
+        } else {
+            http_response_code(500);
+            echo json_encode(['exito' => false, 'error' => $conexion->error]);
+        }
+        exit;
+    }
+    
     // RUTAS DE AUTOS
     if ($parametros[0] === 'api' && $parametros[1] === 'autos') {
         
