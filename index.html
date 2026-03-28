@@ -550,6 +550,9 @@ const app = {
       this.currentUser = authUser;
       this.goToView('homeView');
       document.getElementById('userDisplay').innerHTML = `Bienvenido, <span class="font-semibold text-blue-600">${this.currentUser}</span>`;
+    } else {
+      // Si no hay sesión, mostrar login
+      this.goToView('loginView');
     }
   },
 

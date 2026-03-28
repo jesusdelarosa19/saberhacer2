@@ -1,118 +1,103 @@
-const CACHE_NAME = 'carros-pro-v3';
-const APP_SHELL = ['/', '/index.html', '/manifest.json'];
+const CACHE_VERSION = 'v4';
+const CACHE_NAME = `venta-carros-${CACHE_VERSION}`;
 
-self.addEventListener('install', event => {
-  console.log('[SW] Installing...', CACHE_NAME);
+const URLS_CACHE = [
+  '/venta-carros-pwa/',
+  '/venta-carros-pwa/index.html',
+  '/venta-carros-pwa/manifest.json'
+];
+
+// INSTALL EVENT
+self.addEventListener('install', (event) => {
+  console.log('[SW] Installing...');
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      console.log('[SW] App shell cached');
-      return cache.addAll(APP_SHELL).catch(err => {
-        console.warn('[SW] Cache addAll error:', err);
-        return cache.addAll(['/index.html']);
-      });
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('[SW] Cache created:', CACHE_NAME);
+      return cache.addAll(URLS_CACHE);
+    }).catch(err => {
+      console.error('[SW] Install error:', err);
     })
   );
   self.skipWaiting();
 });
 
-self.addEventListener('activate', event => {
-  console.log('[SW] Activating...', CACHE_NAME);
+// ACTIVATE EVENT
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating...');
   event.waitUntil(
-    caches.keys().then(keys => {
-      console.log('[SW] Old caches:', keys);
+    caches.keys().then((cacheNames) => {
       return Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME && key.startsWith('carros-pro'))
-          .map(key => {
-            console.log('[SW] Deleting old cache:', key);
-            return caches.delete(key);
-          })
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('[SW] Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
       );
     })
   );
   self.clients.claim();
 });
 
-self.addEventListener('fetch', event => {
+// FETCH EVENT
+self.addEventListener('fetch', (event) => {
   const { request } = event;
-  
+  const url = new URL(request.url);
+
+  // Skip non-GET requests
   if (request.method !== 'GET') {
     return;
   }
 
-  const isNavigationRequest = request.mode === 'navigate';
-  const isExternal = !request.url.includes(self.location.origin);
-
-  if (isExternal && isNavigationRequest) {
+  // Skip external requests (CDN, APIs, etc)
+  if (!url.hostname.includes('localhost')) {
     return;
   }
 
-  if (isNavigationRequest) {
+  // Navigation requests: Network first, fallback to cache
+  if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
-        .then(response => {
-          if (!response || response.status !== 200 || response.type === 'error') {
-            return response;
+        .then((response) => {
+          if (response.ok) {
+            const cache = caches.open(CACHE_NAME);
+            cache.then((c) => c.put(request, response.clone()));
           }
-          
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(request, clone);
-          });
           return response;
         })
         .catch(() => {
-          return caches.match('/index.html') 
-            .then(response => response || new Response('No disponible offline', { status: 503 }));
+          return caches.match(request).then((cachedResponse) => {
+            return cachedResponse || new Response('Offline mode', { status: 503 });
+          });
         })
     );
     return;
   }
 
-  // Para recursos (css, js, etc)
+  // Asset requests: Cache first, fallback to network
   event.respondWith(
-    caches.match(request).then(cached => {
-      if (cached) {
-        // En background, intenta actualizar
-        fetch(request)
-          .then(response => {
-            if (response && response.status === 200) {
-              caches.open(CACHE_NAME).then(cache => {
-                cache.put(request, response);
-              });
-            }
-          })
-          .catch(() => {});
-        
-        return cached;
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
       }
-
-      return fetch(request)
-        .then(response => {
-          if (!response || response.status !== 200) {
-            return response;
-          }
-
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(request, clone);
+      return fetch(request).then((response) => {
+        if (response.ok) {
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, response.clone());
           });
-          return response;
-        })
-        .catch(() => {
-          // Fallback offline
-          if (request.destination === 'document') {
-            return caches.match('/index.html');
-          }
-          return new Response('Recurso no disponible', { status: 404 });
-        });
+        }
+        return response;
+      });
+    }).catch(() => {
+      return new Response('Offline mode', { status: 503 });
     })
   );
 });
 
-// Detectar actualizaciones
-self.addEventListener('message', event => {
+// MESSAGE EVENT - Skip waiting
+self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });
+ 
